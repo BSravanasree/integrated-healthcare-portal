@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(PATIENT)
+  verified     Boolean  @default(false)
+  bookings     Booking[]
+  reviews      Review[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Provider {
+  id           String   @id @default(uuid())
+  userId       String?  
+  name         String
+  specialty    String?
+  bio          String?
+  fees         Float?   @default(0)
+  rating       Float?   @default(0)
+  reviewsCount Int?     @default(0)
+  verified     Boolean  @default(false)
+  bookings     Booking[]
+  reviews      Review[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  provider  Provider @relation(fields: [providerId], references: [id])
+  providerId String
+  patient   User     @relation(fields: [patientId], references: [id])
+  patientId String
+  date      DateTime
+  timeSlot  String
+  status    BookingStatus @default(BOOKED)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  provider  Provider @relation(fields: [providerId], references: [id])
+  providerId String
+  patient   User     @relation(fields: [patientId], references: [id])
+  patientId String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  PATIENT
+  PROVIDER
+  ADMIN
+}
+
+enum BookingStatus {
+  BOOKED
+  CANCELLED
+  COMPLETED
+}
